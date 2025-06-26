@@ -22,8 +22,8 @@ spring:
   # -----------------------
   datasource:
     url: jdbc:postgresql://localhost:5432/payment_db
-    username: postgres
-    password: 1707sene
+    username: payment_user
+    password: payment_password
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: PaymentHikariCP
