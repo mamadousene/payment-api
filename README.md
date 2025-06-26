@@ -4,7 +4,7 @@
 
 - 📧 Email : [mamadoulaminesene30@gmail.com](mailto:mamadoulaminesene30@gmail.com)
 - 🔗 LinkedIn : [linkedin.com/in/mamadoulaminesene](https://www.linkedin.com/in/mamadoulaminesene/)
-
+- API_KEY Pour tester : SN_PAY_API_2025_4f7dA9B3C2E1G6HZQXRJYTWP
 # 🏗️ Architecture API Payment - Java 17 - SPRING 3.3.13
 #
 ## 📋 Vue d'ensemble
