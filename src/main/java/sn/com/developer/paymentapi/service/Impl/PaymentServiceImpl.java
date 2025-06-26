@@ -60,6 +60,13 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse processPayment(PaymentRequest request, String apiKey) {
+        if(transactionRepository.existsByCorrelationId(request.correlationId())){
+            throw new BadRequestAlertException(
+                    String.format("Correlation %s existe deja peut etre la transcaction est en pending faut patoenet",request.correlationId()),
+                    "Transaction",
+                    ""
+            );
+        }
         validateApiKey(apiKey);
 
         var operateur = findOperateurByCode(request.operateur());

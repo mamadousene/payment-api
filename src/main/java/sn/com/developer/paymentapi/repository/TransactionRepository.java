@@ -14,4 +14,5 @@ import sn.com.developer.paymentapi.domain.entity.Transaction;
  */
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    boolean existsByCorrelationId(String correlationId);
 }

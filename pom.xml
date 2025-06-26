@@ -319,6 +319,14 @@
             </properties>
         </profile>
 
+        <!-- Profil staging -->
+        <profile>
+            <id>staging</id>
+            <properties>
+                <spring.profiles.active>staging</spring.profiles.active>
+            </properties>
+        </profile>
+
         <!-- Profil production -->
         <profile>
             <id>prod</id>
