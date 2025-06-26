@@ -1,0 +1,31 @@
+jdbc:
+  driverClassName: 'org.h2.Driver'
+  url: 'jdbc:h2:mem:myDb;DB_CLOSE_DELAY:-1'
+hibernate:
+  dialect: 'org.hibernate.dialect.H2Dialect'
+  hbm2ddl:
+    auto: 'create-drop'
+spring:
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: 'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl'
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    defer-datasource-initialization: true
+
+
+
+payment:
+  api:
+    key: "SN_KEY_TEST"
+    rate-limit:
+      requests: 1000
+      duration: 3600 # Durée en secondes (1 heure) pour la limite de requêtes API
+
+  callback:
+    timeout: 15s
+    max-retries: 2
+    retry-delay: 5s
