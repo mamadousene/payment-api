@@ -34,7 +34,7 @@ import java.math.BigDecimal;
  *     "771234567",
  *     "CORR-2024-001",
  *     OperateurEnum.ORANGE,
- *     "https://monsite.com/callback"
+ *     "https://httpbin.org/post"
  * );
  * </pre>
  *
@@ -78,6 +78,6 @@ public record PaymentRequest(
 
         @NotBlank(message = "L'URL de callback est obligatoire")
         @Pattern(regexp = "^https?://.*", message = "L'URL de callback doit être valide")
-        @Schema(description = "URL de notification", example = "https://monsite.com/callback")
+        @Schema(description = "URL de notification", example = "https://httpbin.org/post")
         String callbackUrl
 ) {}
