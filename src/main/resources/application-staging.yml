@@ -1,0 +1,217 @@
+# -----------------------------------------------
+# ENVIRONNEMENT DE DÉVELOPPEMENT LOCAL - API PAYMENT
+# -----------------------------------------------
+
+server:
+  port: 8080
+
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 100
+    connection-timeout: 10s  # Réduit à 10s pour plus de réactivité
+
+spring:
+  application:
+    name: payment-api
+
+  # -----------------------
+  # BASE DE DONNÉES - POSTGRESQL
+  # -----------------------
+  datasource:
+    url: jdbc:postgresql://postgres:5432/payment_db
+    username: payment_user
+    password: payment_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: PaymentHikariCP
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+
+  # -----------------------
+  # JPA / HIBERNATE
+  # -----------------------
+  jpa:
+    hibernate:
+      ddl-auto: update # ⚠️ Pour dev uniquement, à désactiver en prod
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+
+
+  # -----------------------
+  # THREADS ASYNC + SCHEDULING
+  # -----------------------
+  task:
+    execution:
+      thread-name-prefix: payment-async-
+      pool:
+        core-size: 5
+        max-size: 20
+        queue-capacity: 100
+        keep-alive: 60s
+    scheduling:
+      thread-name-prefix: payment-scheduler-
+      pool:
+        size: 5
+
+  # -----------------------
+  # JACKSON - JSON handling
+  # -----------------------
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: NON_NULL
+    time-zone: Africa/Dakar
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+# -----------------------------------------------
+# MONITORING & METRICS - ACTUATOR + PROMETHEUS
+# -----------------------------------------------
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics,prometheus,env,configprops
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 200ms, 500ms
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# -----------------------------------------------
+# RÉSILIENCE - CIRCUIT BREAKER / RETRY / TIMEOUTS
+# -----------------------------------------------
+resilience4j:
+  circuitbreaker:
+    instances:
+      callbackService:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  retry:
+    instances:
+      callbackService:
+        max-attempts: 3
+        wait-duration: 2s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+
+  timelimiter:
+    instances:
+      callbackService:
+        timeout-duration: 10s
+
+# -----------------------------------------------
+# API PAYMENT CONFIG - OPÉRATEURS / CALLBACK / CLÉ
+# -----------------------------------------------
+payment:
+  api:
+    key: "SN_PAY_API_2025_4f7dA9B3C2E1G6HZQXRJYTWP" # ⚠️ Clé en clair uniquement pour dev, à externaliser en prod (DOCKER,K8S) !
+    rate-limit:
+      requests: 1000
+      duration: 3600 # Durée en secondes (1 heure) pour la limite de requêtes API
+
+  callback:
+    timeout: 15s
+    max-retries: 2
+    retry-delay: 5s
+
+# -----------------------------------------------
+# LOGGING STRUCTURÉ
+# -----------------------------------------------
+logging:
+  level:
+    sn.payment: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    io.github.resilience4j: INFO
+
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){yellow} [%clr(%X{correlationId}){cyan}] %clr(%logger{36}){green} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId}] %logger{50} - %msg%n"
+
+  file:
+    name: logs/payment-api-dev.log
+
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+
+# -----------------------------------------------
+# SWAGGER / OPENAPI DOC
+# -----------------------------------------------
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: true
+
+# -----------------------------------------------
+# AUTRES CONFIGS
+# -----------------------------------------------
+debug: false
+
+java:
+  runtime:
+    version: 17
+  jvm:
+    args: >
+      -server
+      -XX:+UseG1GC
+      -XX:G1HeapRegionSize=16m
+      -XX:+UseStringDeduplication
+      -XX:+OptimizeStringConcat
+      -XX:+UseCompressedOops
+      -Xms512m
+      -Xmx2g

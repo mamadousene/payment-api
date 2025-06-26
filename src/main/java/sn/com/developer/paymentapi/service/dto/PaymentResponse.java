@@ -48,7 +48,7 @@ import java.time.LocalDateTime;
  *   "transactionId": "TXN-20240623-001",
  *   "status": "PENDING",
  *   "operateur": "ORANGE",
- *   "callbackUrl": "https://monsite.com/callback",
+ *   "callbackUrl": "https://httpbin.org/post",
  *   "createdAt": "2025-06-25T14:30:00",
  *   "message": "Transaction initiée avec succès"
  * }
